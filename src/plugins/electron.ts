@@ -155,7 +155,7 @@ export function electronRendererEsbuildPlugin(_options?: ElectronPluginOptions):
           })
 
           const html = path.resolve(outdir, '..')
-          await mkdir(path.dirname(html), { recursive: true })
+          await mkdir(html, { recursive: true })
           await writeFile(path.resolve(html, 'index.html'), beautify.html($.html().replace(/\n\s*$/gm, '')))
         })
       }

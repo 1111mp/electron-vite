@@ -150,6 +150,10 @@ export async function resolveConfig(
           mainViteConfig.tsconfig = 'tsconfig.node.json'
         }
 
+        const noExternal = mainViteConfig.noExternal || []
+        noExternal?.push('electron-vite-tsup/cjs-shim.mjs')
+        mainViteConfig.noExternal = noExternal
+
         const plugins = mainViteConfig.plugins || []
         mainViteConfig.plugins = plugins.concat([...electronMainTsupPlugin({ root })])
 
@@ -163,6 +167,10 @@ export async function resolveConfig(
         if (outDir) {
           resetTsupOutDir(preloadViteConfig, outDir, 'preload')
         }
+
+        const noExternal = preloadViteConfig.noExternal || []
+        noExternal?.push('electron-vite-tsup/cjs-shim.mjs')
+        preloadViteConfig.noExternal = noExternal
 
         const plugins = preloadViteConfig.plugins || []
         preloadViteConfig.plugins = plugins.concat([...electronPreloadTsupPlugin({ root })])
