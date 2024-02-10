@@ -15,7 +15,7 @@ import { toRelativePath } from '../utils'
 const _require = createRequire(import.meta.url)
 
 function getBytecodeCompilerPath(): string {
-  return path.join(path.dirname(_require.resolve('electron-vite/package.json')), 'bin', 'electron-bytecode.cjs')
+  return path.join(path.dirname(_require.resolve('electron-vite-tsup/package.json')), 'bin', 'electron-bytecode.cjs')
 }
 
 function compileToBytecode(code: string): Promise<Buffer> {

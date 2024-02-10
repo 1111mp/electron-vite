@@ -5,24 +5,27 @@ import { createRequire } from 'node:module'
 import colors from 'picocolors'
 import {
   type UserConfig as ViteConfig,
-  type UserConfigExport as UserViteConfigExport,
   type ConfigEnv,
-  type Plugin,
   type LogLevel,
   createLogger,
   mergeConfig,
   normalizePath
 } from 'vite'
 import { build } from 'esbuild'
+import { type Options as TsupOptions } from 'tsup'
 
-import { electronMainVitePlugin, electronPreloadVitePlugin, electronRendererVitePlugin } from './plugins/electron'
-import assetPlugin from './plugins/asset'
-import workerPlugin from './plugins/worker'
-import importMetaUrlPlugin from './plugins/importMetaUrl'
-import esmShimPlugin from './plugins/esm'
+import {
+  electronMainTsupPlugin,
+  electronPreloadTsupPlugin,
+  electronRendererTsupPlugin,
+  electronRendererVitePlugin,
+  electronRendererEsbuildPlugin
+} from './plugins/electron'
 import { isObject, isFilePathESM } from './utils'
 
 export { defineConfig as defineViteConfig } from 'vite'
+
+type UserViteConfig = Omit<ViteConfig, 'build'> & { build?: TsupOptions }
 
 export interface UserConfig {
   /**
@@ -30,20 +33,30 @@ export interface UserConfig {
    *
    * https://vitejs.dev/config/
    */
-  main?: ViteConfig & { configFile?: string | false }
+  main?: TsupOptions & { configFile?: string | false }
   /**
    * Vite config options for electron renderer process
    *
    * https://vitejs.dev/config/
    */
-  renderer?: ViteConfig & { configFile?: string | false }
+  renderer?: UserViteConfig & { configFile?: string | false }
   /**
    * Vite config options for electron preload files
    *
    * https://vitejs.dev/config/
    */
-  preload?: ViteConfig & { configFile?: string | false }
+  preload?: TsupOptions & { configFile?: string | false }
 }
+
+type UserConfigFnObject = (env: ConfigEnv) => UserViteConfig
+type UserConfigFnPromise = (env: ConfigEnv) => Promise<UserViteConfig>
+type UserViteConfigFn = (env: ConfigEnv) => UserViteConfig | Promise<UserViteConfig>
+type UserViteConfigExport =
+  | UserViteConfig
+  | Promise<UserViteConfig>
+  | UserConfigFnObject
+  | UserConfigFnPromise
+  | UserViteConfigFn
 
 export interface UserConfigSchema {
   /**
@@ -51,7 +64,7 @@ export interface UserConfigSchema {
    *
    * https://vitejs.dev/config/
    */
-  main?: UserViteConfigExport
+  main?: TsupOptions
   /**
    * Vite config options for electron renderer process
    *
@@ -63,10 +76,10 @@ export interface UserConfigSchema {
    *
    * https://vitejs.dev/config/
    */
-  preload?: UserViteConfigExport
+  preload?: TsupOptions
 }
 
-export type InlineConfig = Omit<ViteConfig, 'base'> & {
+export type InlineConfig = Omit<UserViteConfig, 'base'> & {
   configFile?: string | false
   envFile?: false
   ignoreConfigWarning?: boolean
@@ -127,49 +140,70 @@ export async function resolveConfig(
       const outDir = config.build?.outDir
 
       if (loadResult.config.main) {
-        const mainViteConfig: ViteConfig = mergeConfig(loadResult.config.main, deepClone(config))
+        const mainViteConfig: TsupOptions = mergeConfig(loadResult.config.main, deepClone(config))
 
         if (outDir) {
-          resetOutDir(mainViteConfig, outDir, 'main')
+          resetTsupOutDir(mainViteConfig, outDir, 'main')
         }
 
-        mergePlugins(mainViteConfig, [
-          ...electronMainVitePlugin({ root }),
-          assetPlugin(),
-          workerPlugin(),
-          importMetaUrlPlugin(),
-          esmShimPlugin()
-        ])
+        if (!mainViteConfig.tsconfig) {
+          mainViteConfig.tsconfig = 'tsconfig.node.json'
+        }
+
+        const plugins = mainViteConfig.plugins || []
+        mainViteConfig.plugins = plugins.concat([...electronMainTsupPlugin({ root })])
 
         loadResult.config.main = mainViteConfig
         loadResult.config.main.configFile = false
       }
 
       if (loadResult.config.preload) {
-        const preloadViteConfig: ViteConfig = mergeConfig(loadResult.config.preload, deepClone(config))
+        const preloadViteConfig: TsupOptions = mergeConfig(loadResult.config.preload, deepClone(config))
 
         if (outDir) {
-          resetOutDir(preloadViteConfig, outDir, 'preload')
+          resetTsupOutDir(preloadViteConfig, outDir, 'preload')
         }
-        mergePlugins(preloadViteConfig, [
-          ...electronPreloadVitePlugin({ root }),
-          assetPlugin(),
-          importMetaUrlPlugin(),
-          esmShimPlugin()
-        ])
+
+        const plugins = preloadViteConfig.plugins || []
+        preloadViteConfig.plugins = plugins.concat([...electronPreloadTsupPlugin({ root })])
 
         loadResult.config.preload = preloadViteConfig
         loadResult.config.preload.configFile = false
       }
 
       if (loadResult.config.renderer) {
-        const rendererViteConfig: ViteConfig = mergeConfig(loadResult.config.renderer, deepClone(config))
+        const rendererViteConfig: UserViteConfig = mergeConfig(loadResult.config.renderer, deepClone(config))
 
-        if (outDir) {
-          resetOutDir(rendererViteConfig, outDir, 'renderer')
+        if (mode !== 'production') {
+          const userPlugins = rendererViteConfig.plugins || []
+          rendererViteConfig.plugins = userPlugins.concat([...electronRendererVitePlugin({ root })])
         }
 
-        mergePlugins(rendererViteConfig, electronRendererVitePlugin({ root }))
+        if (mode === 'production') {
+          if (outDir) {
+            resetOutDir(rendererViteConfig, outDir, 'renderer/assets')
+          }
+
+          const defaultBuild = {
+            target: 'esnext',
+            format: 'esm',
+            platform: 'browser',
+            bundle: true,
+            noExternal: [/(.*)/],
+            splitting: true,
+            treeshake: true,
+            tsconfig: 'tsconfig.web.json'
+          }
+
+          const build = rendererViteConfig.build || {}
+          rendererViteConfig.build = mergeConfig(defaultBuild, build)
+
+          const userPlugins = rendererViteConfig.build.plugins || []
+          rendererViteConfig.build.plugins = userPlugins.concat([...electronRendererTsupPlugin({ root })])
+
+          const esbuildPlugins = rendererViteConfig.build.esbuildPlugins || []
+          rendererViteConfig.build.esbuildPlugins = esbuildPlugins.concat([...electronRendererEsbuildPlugin({ root })])
+        }
 
         loadResult.config.renderer = rendererViteConfig
         loadResult.config.renderer.configFile = false
@@ -194,21 +228,24 @@ function deepClone<T>(data: T): T {
   return JSON.parse(JSON.stringify(data))
 }
 
-function resetOutDir(config: ViteConfig, outDir: string, subOutDir: string): void {
+function resetOutDir(config: UserViteConfig, outDir: string, subOutDir: string): void {
   let userOutDir = config.build?.outDir
-  if (outDir === userOutDir) {
-    userOutDir = path.resolve(config.root || process.cwd(), outDir, subOutDir)
-    if (config.build) {
-      config.build.outDir = userOutDir
-    } else {
-      config.build = { outDir: userOutDir }
-    }
+  userOutDir = path.resolve(config.root || process.cwd(), outDir, subOutDir)
+  if (config.build) {
+    config.build.outDir = userOutDir
+  } else {
+    config.build = { outDir: userOutDir }
   }
 }
 
-function mergePlugins(config: ViteConfig, plugins: Plugin[]): void {
-  const userPlugins = config.plugins || []
-  config.plugins = userPlugins.concat(plugins)
+function resetTsupOutDir(config: TsupOptions, outDir: string, subOutDir: string): void {
+  let userOutDir = config.outDir
+  userOutDir = path.resolve(process.cwd(), outDir, subOutDir)
+  if (config) {
+    config.outDir = userOutDir
+  } else {
+    config = { outDir: userOutDir }
+  }
 }
 
 const CONFIG_FILE_NAME = 'electron.vite.config'

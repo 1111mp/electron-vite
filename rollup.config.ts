@@ -2,6 +2,7 @@ import { createRequire } from 'node:module'
 import fs from 'node:fs/promises'
 import { type Plugin, defineConfig } from 'rollup'
 import ts from '@rollup/plugin-typescript'
+import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import json from '@rollup/plugin-json'
 import dts from 'rollup-plugin-dts'
@@ -30,7 +31,7 @@ function clean(when: 'buildStart' | 'buildEnd', target: string): Plugin {
 
 export default defineConfig([
   {
-    input: ['src/index.ts', 'src/cli.ts'],
+    input: ['src/index.ts', 'src/cli.ts', 'src/cjs-shim.ts'],
     output: [
       {
         dir: 'dist',
@@ -49,6 +50,7 @@ export default defineConfig([
     plugins: [
       clean('buildStart', 'dist'),
       json(),
+      commonjs(),
       ts({ compilerOptions: { rootDir: 'src', declaration: true, declarationDir: 'dist/types' } }),
       resolve()
     ],

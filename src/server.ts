@@ -1,12 +1,6 @@
 import type { ChildProcess } from 'node:child_process'
-import {
-  type UserConfig as ViteConfig,
-  type ViteDevServer,
-  createServer as ViteCreateServer,
-  build as viteBuild,
-  createLogger,
-  mergeConfig
-} from 'vite'
+import { type ViteDevServer, createServer as ViteCreateServer, createLogger } from 'vite'
+import { build, type Options } from 'tsup'
 import colors from 'picocolors'
 import { type InlineConfig, resolveConfig } from './config'
 import { resolveHostname } from './utils'
@@ -80,7 +74,7 @@ export async function createServer(
     if (rendererViteConfig) {
       logger.info(colors.gray(`\n-----\n`))
 
-      server = await ViteCreateServer(rendererViteConfig)
+      server = await ViteCreateServer({ ...rendererViteConfig, build: undefined })
 
       if (!server.httpServer) {
         throw new Error('HTTP server not available')
@@ -110,13 +104,11 @@ export async function createServer(
   }
 }
 
-type UserConfig = ViteConfig & { configFile?: string | false }
-
-async function doBuild(config: UserConfig, watchHook: () => void, errorHook: (e: Error) => void): Promise<void> {
+async function doBuild(options: Options, watchHook: () => void, errorHook: (e: Error) => void): Promise<void> {
   return new Promise(resolve => {
-    if (config.build?.watch) {
+    if (options.watch) {
       let firstBundle = true
-      const closeBundle = (): void => {
+      const onSuccess = async (): Promise<void> => {
         if (firstBundle) {
           firstBundle = false
           resolve()
@@ -125,19 +117,12 @@ async function doBuild(config: UserConfig, watchHook: () => void, errorHook: (e:
         }
       }
 
-      config = mergeConfig(config, {
-        plugins: [
-          {
-            name: 'vite:electron-watcher',
-            closeBundle
-          }
-        ]
-      })
+      options.onSuccess = onSuccess
     }
 
-    viteBuild(config)
+    build(options)
       .then(() => {
-        if (!config.build?.watch) {
+        if (!options.watch) {
           resolve()
         }
       })

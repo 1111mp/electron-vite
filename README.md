@@ -3,7 +3,7 @@
 </p>
 
 <div align="center">
-  <h1>electron-vite</h1>
+  <h1>electron-vite-tsup</h1>
 </div>
 <p align="center">Next generation Electron build tooling based on Vite</p>
 
@@ -42,26 +42,26 @@
 ### Install
 
 ```sh
-npm i electron-vite -D
+npm i electron-vite-tsup -D
 ```
 
 ### Development & Build
 
-In a project where `electron-vite` is installed, you can use `electron-vite` binary directly with `npx electron-vite` or add the npm scripts to your `package.json` file like this:
+In a project where `electron-vite-tsup` is installed, you can use `electron-vite-tsup` binary directly with `npx electron-vite` or add the npm scripts to your `package.json` file like this:
 
 ```json
 {
   "scripts": {
-    "start": "electron-vite preview",
-    "dev": "electron-vite dev",
-    "prebuild": "electron-vite build"
+    "start": "electron-vite-tsup preview",
+    "dev": "electron-vite-tsup dev",
+    "prebuild": "electron-vite-tsup build"
   }
 }
 ```
 
 ### Configuration
 
-When running `electron-vite` from the command line, electron-vite will automatically try to resolve a config file named `electron.vite.config.js` inside project root. The most basic config file looks like this:
+When running `electron-vite-tsup` from the command line, electron-vite-tsup will automatically try to resolve a config file named `electron.vite.config.js` inside project root. The most basic config file looks like this:
 
 ```js
 // electron.vite.config.js

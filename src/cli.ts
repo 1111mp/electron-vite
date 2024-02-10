@@ -4,7 +4,7 @@ import { LogLevel, createLogger } from 'vite'
 import { InlineConfig } from './config'
 import { version } from '../package.json'
 
-const cli = cac('electron-vite')
+const cli = cac('electron-vite-tsup')
 
 // global options
 interface GlobalCLIOptions {
@@ -51,8 +51,8 @@ function createInlineConfig(root: string, options: GlobalCLIOptions): InlineConf
     ignoreConfigWarning: options.ignoreConfigWarning,
     build: {
       sourcemap: options.sourcemap,
-      outDir: options.outDir,
-      ...(options.w || options.watch ? { watch: {} } : null)
+      outDir: options.outDir || 'out',
+      ...(options.w || options.watch ? { watch: true } : undefined)
     }
   }
 }

@@ -1,4 +1,4 @@
-import { build as viteBuild } from 'vite'
+import { build as tsupBuild } from 'tsup'
 import { InlineConfig, resolveConfig } from './config'
 
 /**
@@ -10,24 +10,24 @@ export async function build(inlineConfig: InlineConfig = {}): Promise<void> {
   if (config.config) {
     const mainViteConfig = config.config?.main
     if (mainViteConfig) {
-      if (mainViteConfig.build?.watch) {
-        mainViteConfig.build.watch = null
+      if (mainViteConfig.watch) {
+        mainViteConfig.watch = undefined
       }
-      await viteBuild(mainViteConfig)
+      await tsupBuild(mainViteConfig)
     }
     const preloadViteConfig = config.config?.preload
     if (preloadViteConfig) {
-      if (preloadViteConfig.build?.watch) {
-        preloadViteConfig.build.watch = null
+      if (preloadViteConfig.watch) {
+        preloadViteConfig.watch = undefined
       }
-      await viteBuild(preloadViteConfig)
+      await tsupBuild(preloadViteConfig)
     }
     const rendererViteConfig = config.config?.renderer
-    if (rendererViteConfig) {
-      if (rendererViteConfig.build?.watch) {
-        rendererViteConfig.build.watch = null
+    if (rendererViteConfig && rendererViteConfig.build) {
+      if (rendererViteConfig.build.watch) {
+        rendererViteConfig.build.watch = undefined
       }
-      await viteBuild(rendererViteConfig)
+      await tsupBuild(rendererViteConfig.build)
     }
   }
 }
