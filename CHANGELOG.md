@@ -1,3 +1,7 @@
+### v2.0.1  (_2024-02-12_)
+
+- feat: packaging tools migrate to `tsup` from `rollup`
+
 ### v2.0.0  (_2024-01-09_)
 
 - feat: bump minimum node version to 18
