@@ -137,13 +137,18 @@ export async function resolveConfig(
       delete config.root
       delete config.configFile
 
-      const outDir = config.build?.outDir
+      const outDir = config.build?.outDir,
+        sourcemap = config.build?.sourcemap
 
       if (loadResult.config.main) {
         const mainViteConfig: TsupOptions = mergeConfig(loadResult.config.main, deepClone(config))
 
         if (outDir) {
           resetTsupOutDir(mainViteConfig, outDir, 'main')
+        }
+
+        if (sourcemap) {
+          mainViteConfig.sourcemap = true
         }
 
         if (!mainViteConfig.tsconfig) {
@@ -166,6 +171,10 @@ export async function resolveConfig(
 
         if (outDir) {
           resetTsupOutDir(preloadViteConfig, outDir, 'preload')
+        }
+
+        if (sourcemap) {
+          preloadViteConfig.sourcemap = true
         }
 
         const noExternal = preloadViteConfig.noExternal || []

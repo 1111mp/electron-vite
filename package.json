@@ -1,6 +1,6 @@
 {
   "name": "electron-vite-tsup",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Electron build tooling based on Vite",
   "type": "module",
   "main": "dist/index.cjs",
