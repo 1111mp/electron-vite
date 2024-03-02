@@ -109,7 +109,7 @@ export async function resolveConfig(
   command: 'build' | 'serve',
   defaultMode = 'development'
 ): Promise<ResolvedConfig> {
-  const config = inlineConfig
+  const config = { ...inlineConfig, ...inlineConfig.build }
   const mode = inlineConfig.mode || defaultMode
 
   config.mode = mode
@@ -137,18 +137,13 @@ export async function resolveConfig(
       delete config.root
       delete config.configFile
 
-      const outDir = config.build?.outDir,
-        sourcemap = config.build?.sourcemap
+      const outDir = config.build?.outDir
 
       if (loadResult.config.main) {
         const mainViteConfig: TsupOptions = mergeConfig(loadResult.config.main, deepClone(config))
 
         if (outDir) {
           resetTsupOutDir(mainViteConfig, outDir, 'main')
-        }
-
-        if (sourcemap) {
-          mainViteConfig.sourcemap = true
         }
 
         if (!mainViteConfig.tsconfig) {
@@ -171,10 +166,6 @@ export async function resolveConfig(
 
         if (outDir) {
           resetTsupOutDir(preloadViteConfig, outDir, 'preload')
-        }
-
-        if (sourcemap) {
-          preloadViteConfig.sourcemap = true
         }
 
         const noExternal = preloadViteConfig.noExternal || []
