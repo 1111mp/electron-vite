@@ -22,6 +22,7 @@ import {
   electronRendererEsbuildPlugin
 } from './plugins/electron'
 import { isObject, isFilePathESM } from './utils'
+import { getElectronMajorVersion } from './electron'
 
 export { defineConfig as defineViteConfig } from 'vite'
 
@@ -151,7 +152,9 @@ export async function resolveConfig(
         }
 
         const noExternal = mainViteConfig.noExternal || []
-        noExternal?.push('electron-vite-tsup/cjs-shim.mjs')
+        noExternal?.push(
+          getElectronMajorVersion() >= 30 ? 'electron-vite-tsup/cjs-shim-20_11.mjs' : 'electron-vite-tsup/cjs-shim.mjs'
+        )
         mainViteConfig.noExternal = noExternal
 
         const plugins = mainViteConfig.plugins || []
@@ -169,7 +172,9 @@ export async function resolveConfig(
         }
 
         const noExternal = preloadViteConfig.noExternal || []
-        noExternal?.push('electron-vite-tsup/cjs-shim.mjs')
+        noExternal?.push(
+          getElectronMajorVersion() >= 30 ? 'electron-vite-tsup/cjs-shim-20_11.mjs' : 'electron-vite-tsup/cjs-shim.mjs'
+        )
         preloadViteConfig.noExternal = noExternal
 
         const plugins = preloadViteConfig.plugins || []

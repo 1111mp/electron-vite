@@ -5,7 +5,7 @@ import { builtinModules } from 'node:module'
 import colors from 'picocolors'
 import * as cheerio from 'cheerio'
 import beautify from 'js-beautify'
-import { getElectronNodeTarget, getElectronChromeTarget, supportESM } from '../electron'
+import { getElectronNodeTarget, getElectronChromeTarget, supportESM, getElectronMajorVersion } from '../electron'
 import { loadPackageData } from '../utils'
 
 import { type Plugin, normalizePath } from 'vite'
@@ -49,7 +49,11 @@ export function electronMainTsupPlugin(_options?: ElectronPluginOptions): Plugin
         const external = options.external || []
         options.external = external.concat(['electron', ...builtinModules.flatMap(m => [m, `node:${m}`])])
         const inject = options.inject || []
-        options.inject = inject.concat(['electron-vite-tsup/cjs-shim.mjs'])
+        options.inject = inject.concat(
+          getElectronMajorVersion() >= 30
+            ? ['electron-vite-tsup/cjs-shim-20_11.mjs']
+            : ['electron-vite-tsup/cjs-shim.mjs']
+        )
       }
     }
   ]
@@ -80,7 +84,11 @@ export function electronPreloadTsupPlugin(_options?: ElectronPluginOptions): Plu
 
         if (options.format === 'esm') {
           const inject = options.inject || []
-          options.inject = inject.concat(['electron-vite-tsup/cjs-shim.mjs'])
+          options.inject = inject.concat(
+            getElectronMajorVersion() >= 30
+              ? ['electron-vite-tsup/cjs-shim-20_11.mjs']
+              : ['electron-vite-tsup/cjs-shim.mjs']
+          )
         }
       }
     }

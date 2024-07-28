@@ -1,6 +1,6 @@
 {
   "name": "electron-vite-tsup",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Electron build tooling based on Vite",
   "type": "module",
   "main": "dist/index.cjs",
@@ -17,6 +17,8 @@
     },
     "./cjs-shim.cjs": "./dist/cjs-shim.cjs",
     "./cjs-shim.mjs": "./dist/cjs-shim.mjs",
+    "./cjs-shim-20_11.cjs": "./dist/cjs-shim-20_11.cjs",
+    "./cjs-shim-20_11.mjs": "./dist/cjs-shim-20_11.mjs",
     "./package.json": "./package.json"
   },
   "bin": {
@@ -77,35 +79,35 @@
     }
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@swc/core": "^1.4.0",
-    "@types/node": "^20.11.17",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@swc/core": "^1.7.3",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.17.0",
     "cheerio": "1.0.0-rc.12",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "js-beautify": "^1.14.11",
-    "lint-staged": "^15.2.2",
-    "prettier": "^3.2.5",
-    "rollup": "^4.10.0",
-    "rollup-plugin-dts": "^6.1.0",
-    "simple-git-hooks": "^2.9.0",
-    "tslib": "^2.6.2",
-    "tsup": "^8.0.2",
-    "typescript": "^5.3.3",
-    "vite": "^5.1.1"
+    "eslint-plugin-prettier": "^5.2.1",
+    "js-beautify": "^1.15.1",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.3",
+    "rollup": "^4.19.1",
+    "rollup-plugin-dts": "^6.1.1",
+    "simple-git-hooks": "^2.11.1",
+    "tslib": "^2.6.3",
+    "tsup": "^8.2.3",
+    "typescript": "^5.5.4",
+    "vite": "^5.3.5"
   },
   "dependencies": {
-    "@babel/core": "^7.23.9",
-    "@babel/plugin-transform-arrow-functions": "^7.23.3",
+    "@babel/core": "^7.24.9",
+    "@babel/plugin-transform-arrow-functions": "^7.24.7",
     "cac": "^6.7.14",
-    "esbuild": "^0.20.0",
-    "magic-string": "^0.30.7",
-    "picocolors": "^1.0.0"
+    "esbuild": "^0.23.0",
+    "magic-string": "^0.30.10",
+    "picocolors": "^1.0.1"
   }
 }

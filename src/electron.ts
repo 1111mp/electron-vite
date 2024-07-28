@@ -41,6 +41,11 @@ export function supportESM(): boolean {
   return parseInt(majorVer) >= 28
 }
 
+export function getElectronMajorVersion(): number {
+  const majorVer = getElectronMajorVer()
+  return parseInt(majorVer)
+}
+
 export function getElectronPath(): string {
   let electronExecPath = process.env.ELECTRON_EXEC_PATH || ''
   if (!electronExecPath) {
@@ -64,6 +69,7 @@ export function getElectronNodeTarget(): string {
   const electronVer = getElectronMajorVer()
 
   const nodeVer = {
+    '31': '20.14',
     '30': '20.11',
     '29': '20.9',
     '28': '18.18',
@@ -95,6 +101,7 @@ export function getElectronChromeTarget(): string {
   const electronVer = getElectronMajorVer()
 
   const chromeVer = {
+    '31': '126',
     '30': '124',
     '29': '122',
     '28': '120',

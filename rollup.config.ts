@@ -31,7 +31,7 @@ function clean(when: 'buildStart' | 'buildEnd', target: string): Plugin {
 
 export default defineConfig([
   {
-    input: ['src/index.ts', 'src/cli.ts', 'src/cjs-shim.ts'],
+    input: ['src/index.ts', 'src/cli.ts', 'src/cjs-shim.ts', 'src/cjs-shim-20_11.ts'],
     output: [
       {
         dir: 'dist',
